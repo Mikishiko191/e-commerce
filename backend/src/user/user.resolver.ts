@@ -1,21 +1,43 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Put,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './model/user.model';
 
-@Resolver(() => User)
-export class UserResolver {
+@Controller('api/users')
+export class UserController {
   constructor(private userService: UserService) {}
 
-  @Query(() => [User])
-  async users() {
+  @Get()
+  async getUsers(): Promise<User[]> {
     return this.userService.getUsers();
   }
 
-  @Mutation(() => User)
+  @Post()
   async createUser(
-    @Args('username') username: string,
-    @Args('email') email: string,
-  ) {
+    @Body('username') username: string,
+    @Body('email') email: string,
+  ): Promise<User> {
     return this.userService.createUser(username, email);
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number): Promise<User> {
+    return this.userService.deleteUser(id);
+  }
+
+  @Put(':id')
+  async updateUser(
+    @Param('id') id: number,
+    @Body('username') username: string,
+    @Body('email') email: string,
+  ): Promise<User> {
+    return this.userService.updateUser(id, username, email);
   }
 }
