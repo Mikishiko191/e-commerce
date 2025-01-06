@@ -41,6 +41,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
   // Swagger for API documentation
   const config = new DocumentBuilder()
     .setTitle('E-Commerce API')

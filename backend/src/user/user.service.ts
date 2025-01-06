@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User } from '@prisma/client';
 
@@ -23,6 +27,15 @@ export class UserService {
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {
+    if (!id) {
+      throw new BadRequestException('ID is required.');
+    }
+
+    const existingUser = await this.prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+
     return this.prisma.user.update({
       where: { id },
       data,

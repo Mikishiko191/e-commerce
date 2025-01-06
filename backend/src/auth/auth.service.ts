@@ -1,9 +1,9 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -41,14 +41,6 @@ export class AuthService {
           username,
           password: hashedPassword,
         },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          apiKey: true,
-          createdAt: true,
-          updatedAt: true,
-        },
       });
 
       return user;
@@ -75,7 +67,16 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
+    if (!email) {
+      throw new BadRequestException('Email is required.');
+    }
+
+    if (!password) {
+      throw new BadRequestException('Password is required.');
+    }
+
     const user = await this.prisma.user.findUnique({ where: { email } });
+
     if (
       user &&
       user.password &&
@@ -86,18 +87,7 @@ export class AuthService {
         access_token: this.jwtService.sign(payload),
       };
     }
-    throw new UnauthorizedException('Invalid credentials');
   }
-
-  //   async sendMagicLink(email: string) {
-  //     const { error } = await this.supabase.auth.api.inviteUserByEmail(email, {
-  //       redirectTo: process.env.MAGIC_REDIRECT_URL, // Ensure this env variable is set
-  //     });
-  //     if (error) {
-  //       throw new UnauthorizedException('Failed to send magic link');
-  //     }
-  //     return { message: 'Magic link sent successfully' };
-  //   }
 
   async sendMagicLink(email: string) {
     try {
@@ -126,15 +116,5 @@ export class AuthService {
       return null;
     }
     return this.prisma.user.findUnique({ where: { id: userData.user.id } });
-  }
-
-  async validateApiKey(apiKey: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { apiKey },
-    });
-    if (!user) {
-      return null;
-    }
-    return user;
   }
 }

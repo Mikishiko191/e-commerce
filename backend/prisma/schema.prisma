@@ -16,10 +16,10 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
+  role      String   @default("user") // By default make value user
   username  String
   email     String   @unique
   password  String?
-  apiKey    String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
