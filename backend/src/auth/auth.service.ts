@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Role } from './enums/roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,29 @@ export class AuthService {
 
   async register(createUserDto: CreateUserDto) {
     const { email, password, username } = createUserDto;
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User already exists with this email');
+    }
+
+    const { error: supabaseSignUpError } = await this.supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: process.env.MAGIC_REDIRECT_URL,
+      },
+    });
+
+    if (supabaseSignUpError) {
+      this.logger.error(
+        `Supabase sendMagicLink Error: ${supabaseSignUpError.message}`,
+      );
+      throw new InternalServerErrorException(supabaseSignUpError.message);
+    }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -100,14 +124,37 @@ export class AuthService {
 
       if (error) {
         this.logger.error(`Supabase sendMagicLink Error: ${error.message}`);
-        throw new ConflictException('Failed to send magic link.');
+        throw new ConflictException(
+          `Failed to send magic link. ${error.message}`,
+        );
       }
 
-      return { message: 'Magic link sent successfully.' };
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        const hashedPassword = await bcrypt.hash(
+          Math.random().toString(36),
+          10,
+        );
+
+        await this.prisma.user.create({
+          data: {
+            email,
+            username: email.split('@')[0],
+            // TODO: think about flow when user reset or update password and use login flow
+            password: hashedPassword,
+            role: Role.UserWithMagicLink,
+          },
+        });
+      }
     } catch (error) {
       this.logger.error(`sendMagicLink Exception: ${error.message}`);
       throw new InternalServerErrorException('Internal server error.');
     }
+
+    return { message: 'Magic link sent successfully.' };
   }
 
   async validateMagicToken(token: string) {
