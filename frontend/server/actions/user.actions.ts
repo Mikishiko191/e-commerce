@@ -1,85 +1,74 @@
-const API_URL = process.env.NEXT_PUBLIC_DEV_API_URL;
+'use server';
 
-export interface IUser {
-  id: number;
-  username: string;
-  email: string;
-  createdAt: string;
+import { AUTH_URL, signIn, signOut } from '@/auth';
+import { signInFormSchema, signUpFormSchema } from '../../lib/validators';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+
+export async function signUpWithCredentials(
+  _prevState: unknown,
+  formData: FormData,
+) {
+  try {
+    const user = signUpFormSchema.parse({
+      username: formData.get('username'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+    });
+
+    const res = await fetch(`${AUTH_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!res.ok) {
+      throw new Error('Invalid credentials');
+    }
+
+    const response = await res.json();
+
+    console.log(response, 'response');
+
+    return {
+      success: true,
+      message: 'You registered successfully. Please check your email',
+    };
+  } catch (error) {
+    console.log(error, 'error');
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    return {
+      success: false,
+      message: 'Show message here if error. Next show BE error',
+    };
+  }
 }
 
-export const getUsers = async (): Promise<IUser[]> => {
-  const response = await fetch(`${API_URL}/users`);
+export async function signInWithCredentials(
+  _prevState: unknown,
+  formData: FormData,
+) {
+  try {
+    const user = signInFormSchema.parse({
+      email: formData.get('email'),
+      password: formData.get('password'),
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch users');
+    await signIn('credentials', user);
+    console.log(user, 'user');
+    return { success: true, message: 'Signed in successfully' };
+  } catch (error) {
+    console.log(error, 'error');
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    return { success: false, message: 'Show message here if error' };
   }
-
-  return response.json();
-};
-
-/**
- * Create User Action
- */
-export interface ICreateUser {
-  username: string;
-  email: string;
 }
 
-export const createUser = async (userData: ICreateUser): Promise<IUser> => {
-  const response = await fetch(`${API_URL}/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create user');
-  }
-
-  return response.json();
-};
-
-/**
- * Update User Action
- */
-
-export interface IUpdateUser {
-  id: number;
-  username: string;
-  email: string;
-}
-
-export const updateUser = async (user: IUpdateUser): Promise<IUser> => {
-  const { id, ...userData } = user;
-  const response = await fetch(`${API_URL}/users/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to update user with id "${id}".`);
-  }
-
-  return response.json();
-};
-
-/**
- * Delete User Action
- */
-export const deleteUser = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_URL}/users/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete user');
-  }
+export const signOutUser = async () => {
+  await signOut();
 };
