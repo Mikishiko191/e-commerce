@@ -1,8 +1,9 @@
 'use server';
 
-import { AUTH_URL, signIn, signOut } from '@/auth';
+import { signIn, signOut } from '@/auth';
 import { signInFormSchema, signUpFormSchema } from '../../lib/validators';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { AUTH_URL } from '@/lib/constants';
 
 export async function signUpWithCredentials(
   _prevState: unknown,

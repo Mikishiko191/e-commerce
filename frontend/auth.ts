@@ -1,8 +1,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { NextAuthConfig } from 'next-auth';
-
-export const AUTH_URL = process.env.NEXT_PUBLIC_DEV_AUTH_URL;
+import { AUTH_URL } from '@/lib/constants';
 
 export const config = {
   providers: [

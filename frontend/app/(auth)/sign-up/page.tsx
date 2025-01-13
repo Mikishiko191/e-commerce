@@ -2,9 +2,10 @@ import { Metadata } from 'next';
 import SignUpForm from './sign-up-form';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { APP_NAME } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: 'Sign Up page',
+  title: APP_NAME,
 };
 
 const SignUpPage = async (props: {
