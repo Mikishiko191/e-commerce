@@ -11,6 +11,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@radix-ui/react-slot": "^1.1.1",
     "@tanstack/react-query": "^5.62.14",
     "@tanstack/react-query-devtools": "^5.62.14",
