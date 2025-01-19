@@ -106,7 +106,7 @@ export class AuthService {
       user.password &&
       (await bcrypt.compare(password, user.password))
     ) {
-      const payload = { sub: user.id };
+      const payload = { sub: user.id, role: user.role };
       return {
         access_token: this.jwtService.sign(payload),
       };

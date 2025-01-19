@@ -22,4 +22,30 @@ model User {
   password  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  products  Product[] @relation("UserProducts")
+}
+
+model Product {
+  id                  String   @id @default(cuid())
+  title               String
+  description         String
+  price               Float
+  imageUrls           String[]
+  color               String?
+  stock               Int?
+  category            String?
+  slug                String?
+  tags                String[]
+  isAvailable         Boolean
+  viewCount           Int?
+  shippingCost        Float?   
+  shippingTime        String?
+  averageRating       Float?
+  discountPrice       Float?
+  discountPercentage  Float?
+  createdById         String
+  createdBy           User      @relation(fields: [createdById], references: [id], name: "UserProducts")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
