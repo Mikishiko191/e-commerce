@@ -16,24 +16,28 @@ export class SupabaseService {
   }
 
   async uploadFile(file: MulterFile): Promise<string> {
-    // Generate a unique file name using the timestamp and original file name
-    const fileName = `${Date.now()}-${file.originalname}`;
+    try {
+      // Generate a unique file name using the timestamp and original file name
+      const fileName = `${Date.now()}-${file.originalname}`;
 
-    // Upload file to Supabase Storage
-    const { data, error } = await this.supabase.storage
-      .from('products') // 'products' is the name of the bucket in Supabase
-      .upload(fileName, file.buffer, {
-        cacheControl: '3600',
-        upsert: false, // Set to true if you want to overwrite an existing file with the same name
-      });
+      // Upload file to Supabase Storage
+      const { data, error } = await this.supabase.storage
+        .from('products') // 'products' is the name of the bucket in Supabase
+        .upload(fileName, file.buffer, {
+          cacheControl: '3600',
+          upsert: false, // Set to true if you want to overwrite an existing file with the same name
+        });
 
-    if (error) {
-      throw new Error('Error uploading file to Supabase: ' + error.message);
+      if (error) {
+        throw new Error('Error uploading file to Supabase: ' + error.message);
+      }
+
+      // Return the public URL of the uploaded file
+      const fileUrl = `https://uemmiawppgwbauaczpwh.supabase.co/storage/v1/s3/public/products/${data.path}`;
+      return fileUrl; // Return the URL
+    } catch (err) {
+      throw new Error('Failed to upload file: ' + err.message);
     }
-
-    // Return the public URL of the uploaded file
-    const fileUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/products/${data.path}`;
-    return fileUrl; // Return the URL
   }
 
   // Get authenticated user from token

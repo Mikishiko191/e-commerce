@@ -12,13 +12,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
-import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
+import { CreateProductDto } from './dto/create-product.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/roles.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { File as MulterFile } from 'multer';
-import { User } from '../user/decorators/user.decorator';
+import { GetUser } from '../auth/decorators/user.decorator';
 
 @Controller('api/product')
 export class ProductController {
@@ -37,25 +36,15 @@ export class ProductController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
-  create(
-    @UploadedFile() image,
-    @Body() dto: CreateProductDto,
-    // @User('id') userId: string,
-  ) {
-    // Let's first upload image
-    // Then when user get possible data from image
-    // Use update endpoint to update the product if user did't like the data creating product
-    console.log('image', image);
-    console.log('dto', dto);
-    // console.log('id', userId);
-    // return this.productService.create(image, dto, userId);
+  @UseInterceptors(FileInterceptor('image', { limits: { files: 1 } }))
+  create(@UploadedFile() image, @GetUser() user: { id: string }) {
+    return this.productService.create(image, user.id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+  update(@Param('id') id: string, @Body() dto: CreateProductDto) {
     return this.productService.update(id, dto);
   }
 

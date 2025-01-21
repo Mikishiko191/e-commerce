@@ -9,7 +9,7 @@ export class VisionService {
     this.client = new vision.ImageAnnotatorClient({
       // This uses the GOOGLE_APPLICATION_CREDENTIALS environment variable
       // or you can specify the keyFilename path to the JSON service account file like:
-      keyFilename: 'e-commerce-448309-517d8d8be27e.json',
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
   }
 
@@ -21,7 +21,7 @@ export class VisionService {
 
       return {
         possibleTitle: descriptions[0] || 'Unknown Title',
-        possiblePrice: this.extractPrice(descriptions) ?? 'Unknown price',
+        possiblePrice: this.extractPrice(descriptions) ?? 0,
         possibleDescription: descriptions.join(', ') || 'Unknown description',
         possibleColors: (await this.detectColors(filePath)) || 'Unknown colors',
       };

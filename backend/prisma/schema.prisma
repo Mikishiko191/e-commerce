@@ -30,7 +30,7 @@ model Product {
   id                  String   @id @default(cuid())
   title               String
   description         String
-  price               Float
+  price               Float 
   imageUrls           String[]
   color               String?
   stock               Int?
@@ -45,6 +45,7 @@ model Product {
   discountPrice       Float?
   discountPercentage  Float?
   createdById         String
+  isPublished         Boolean
   createdBy           User      @relation(fields: [createdById], references: [id], name: "UserProducts")
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
