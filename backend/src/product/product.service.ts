@@ -39,7 +39,7 @@ export class ProductService {
   ) {}
 
   async findAll(): Promise<Product[]> {
-    return this.prisma.product.findMany();
+    return this.prisma.product.findMany({ where: { isPublished: true } });
   }
 
   async findOne(id: string): Promise<Product> {
